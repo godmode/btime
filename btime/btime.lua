@@ -1,8 +1,8 @@
--- Main logic transcribed from JavaScript to Lua from Ino at https://github.com/EdenServer/eden-web/blob/develop/client/src/components/Ballista.jsx
+-- Logic transcribed from JavaScript to Lua from Ino at https://github.com/EdenServer/eden-web/blob/develop/client/src/components/Ballista.jsx
 
 _addon.author   = 'Godmode'
 _addon.name     = 'btime'
-_addon.version  = '1.0.0'
+_addon.version  = '1.1.0'
 
 require 'common'
 
@@ -31,9 +31,7 @@ end
 -- func: main
 -- desc: Event called when the addon is being rendered.
 ----------------------------------------------------------------------------------------------------
-function main()
-    -- const match = vanaDateToBallistaMatch(currentDate.year, currentDate.month, currentDate.day);
-    -- local dateTable = os.date("*t", os.time())
+function main(advance)
     local DaysInMoonCycle = 84
     local vanaEpoch = math.floor(((os.time() - 1009810800) * 25) / 60)
 
@@ -48,7 +46,8 @@ function main()
         dayOfMoon = ((math.floor(vanaEpoch / 1440) + 38) % DaysInMoonCycle) - DaysInMoonCycle / 2,
     }
 
-    vanaDate.day = vanaDate.day + (vanaDate.day % 2);
+    advance = advance or 0
+    vanaDate.day = vanaDate.day + (vanaDate.day % 2) + advance;
     while vanaDate.day > 30 do
         vanaDate.month = vanaDate.month + 1;
         vanaDate.day = vanaDate.day - 30;
@@ -99,7 +98,7 @@ function main()
         end
     end
 
-    match.levelCap = 0
+    match.levelCap = 75
     if vanaDate.day < 26 then
       match.levelCap = math.floor((vanaDate.day - 1) / 6) * 10 + 30
     end
@@ -109,8 +108,12 @@ function main()
     match.start = vanaDateToTimestamp(vanaDate.year, vanaDate.month, vanaDate.day)
     match.finish = vanaDateToTimestamp(vanaDate.year, vanaDate.month, vanaDate.day + 1, 0)
 
+    if os.time() > match.entryEnd then
+      return main(2)
+    end
+
     local matchString = string.format(
-        "Next: [%s vs %s][Lv%i %s] Signup from %s to %s",
+        "[%s vs %s][Lv%i %s] Signup from %s to %s",
         match.team1,
         match.team2,
         match.levelCap,
@@ -144,7 +147,6 @@ end)
 -- desc: Event called when a command was entered.
 ----------------------------------------------------------------------------------------------------
 ashita.register_event('command', function(command, ntype)
-    -- Get the arguments of the command..
     local args = command:args()
     if (args[1] ~= '/btime') then
         return false
