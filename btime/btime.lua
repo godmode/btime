@@ -2,7 +2,7 @@
 
 _addon.author   = 'Godmode'
 _addon.name     = 'btime'
-_addon.version  = '1.1.0'
+_addon.version  = '1.1.1'
 
 require 'common'
 
